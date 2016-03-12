@@ -1,0 +1,4 @@
+[
+    { "caption": "LogMagic Statement (down)", "command": "log_magic_down" , "args" : {} },
+    { "caption": "LogMagic Statement (up)", "command": "log_magic_up" , "args" : {} }
+]
