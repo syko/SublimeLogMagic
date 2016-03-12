@@ -91,4 +91,5 @@ You can override the custom keyboard shortcuts by adding this to your personal k
 ## Contributing
 
 Issues are welcome, so are PRs ;)
+
 Btw this plugin should theoretically mostly work for most C-based languages.
