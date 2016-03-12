@@ -39,7 +39,7 @@ LogMagic inspects the current line and tries to extract interesting information 
 Press the same keyboard shortcuts when already on a log statement to cycle through `log`,
 `info`, `warn` and `error`.
 
-![Log cycle](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-anything.gif "Cycling through log levels is a breeze")
+![Log cycle](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-cycle.gif "Cycling through log levels is a breeze")
 
 ### Up / Down support
 
