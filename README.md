@@ -66,3 +66,29 @@ in case of renamed properties)
 log statement (but expect kinks and bugs here).
 
 ![Log with Flowtype](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-flowtype.gif "Supports some flowtype")
+
+## Customizing
+
+There are no customizable settings (feel free to make an issue).
+
+You can override the custom keyboard shortcuts by adding this to your personal keyboard shortcuts file:
+
+```json
+[
+    { "keys": ["super+alt+j"], "command": "log_javascript_statement_down", "context":
+        [
+            { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
+        ]
+    },
+    { "keys": ["super+alt+k"], "command": "log_javascript_statement_up", "context":
+        [
+            { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
+        ]
+    }
+]
+```
+
+## Contributing
+
+Issues are welcome, so are PRs ;)
+Btw this plugin should theoretically mostly work for most C-based languages.
