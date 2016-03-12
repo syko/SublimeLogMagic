@@ -93,4 +93,4 @@ You can override the custom keyboard shortcuts by adding this to your personal k
 Issues are welcome, so are PRs ;)
 
 Btw this plugin should theoretically mostly work for most C-based languages (although by default
-the keyboard shortcuts are only enabled for JavaScript).
+the keyboard shortcuts are only enabled for JavaScript and it spits out `console.*` statements).
