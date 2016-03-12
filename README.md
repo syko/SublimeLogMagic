@@ -1,11 +1,11 @@
 # SublimeLogMagic
 
-Easily log javascript variables and parameters with keyboard shortcut.
+Easily log javascript variables and parameters with keyboard shortcuts.
 
 
 ## Installing
 
-Clone this repository into your Packages directory (Package Control support coming soon).
+Clone this repository into your Sublime Packages directory (Package Control support coming soon).
 
 ## Usage
 
@@ -26,43 +26,43 @@ Any log statement is just a keyboard shortuct away
 LogMagic inspects the current line and tries to extract interesting information from it:
 - variable assignments
 - function parameters in a function definition
-- parameters in case of a function call
+- parameters in a function call
 - supports ES6 destructuring
 - supports ES6 optional parameters
-- supports flowtype (to some extent)
-- falls back to printing `L#` where `#` is the line number if it fails
+- supports [flowtype](http://flowtype.org) (to some extent)
+- falls back to printing `L<line number>` if it fails to parse anything meaningful
 
-![Log anything quickly](https://github.com/syko/SublimeLogMagic/raw/master/src/images/log-anything.gif "Log anything quickly")
+![Log anything quickly](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-anything.gif "Log anything quickly")
 
 ### Cycle through log types
 
-Press the same keyboard shortcuts when on already on a log statement to cycle through `log`,
-`info`, `warn` and `error` types.
+Press the same keyboard shortcuts when already on a log statement to cycle through `log`,
+`info`, `warn` and `error`.
 
-![Log cycle](https://github.com/syko/SublimeLogMagic/raw/master/src/images/log-anything.gif "Cycling through log levels is a breeze")
+![Log cycle](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-anything.gif "Cycling through log levels is a breeze")
 
 ### Up / Down support
 
-You can add the log statement on the previous line or the next line. This is helpful in case of return
-statements for example.
+You can add the log statement on the previous or the next line. This is especially helpful in case of return
+statements.
 
-![Log upwards](https://github.com/syko/SublimeLogMagic/raw/master/src/images/log-up.gif "Log upwards!")
+![Log upwards](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-up.gif "Log upwards!")
 
-This can also change what's logged. Eg in the following case we're more interest in the
-arguments passed to the callback than the value of the variable.
+Logging upwards can also change what's logged. Eg in the following case we're more interested in the
+arguments passed to the callback than the variable assignment.
 
-![Log upwards smartly](https://github.com/syko/SublimeLogMagic/raw/master/src/images/log-up-change.gif "Logging upwards changes everything!")
+![Log upwards smartly](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-up-change.gif "Logging upwards changes everything!")
 
 ### ES6 destructuring support
 
 LogMagic can parse destructuring and extract the necessary variable names from it (even
 in case of renamed properties)
 
-![Log ES6 destructuring](https://github.com/syko/SublimeLogMagic/raw/master/src/images/log-destruct.gif "Supports ES6 Destructuring parameters")
+![Log ES6 destructuring](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-destruct.gif "Supports ES6 Destructuring parameters")
 
 ### Flowtype support
 
-Flowtype is cool. Best effort has been made to ignore flowtype's annotations and still produce a meaningful
+[Flowtype](http://flowtype.org) is cool. Best effort has been made to ignore flowtype's annotations and still produce a meaningful
 log statement (but expect kinks and bugs here).
 
-![Log with Flowtype](https://github.com/syko/SublimeLogMagic/raw/master/src/images/log-flowtype.gif "Supports some flowtype")
+![Log with Flowtype](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-flowtype.gif "Supports some flowtype")
