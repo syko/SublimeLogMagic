@@ -364,7 +364,6 @@ def parse_params(input, _flowtype_enabled = True):
     while input and is_wrapped(input, '('): input = input[1:-1] # Remove wrapping parens
 
     if not input: return []
-    # print("PARSE", input)
 
     # Handle destructuring
     equals = find_all_not_in_parens_or_strings(input, '=')
@@ -404,12 +403,10 @@ def parse_params(input, _flowtype_enabled = True):
         split_points.extend(find_all_not_in_parens_or_strings(input, i))
 
     split_points.sort()
-    # print('split points', split_points)
 
     is_single_param = not split_points
 
     if is_single_param: # End recursion
-        # print('single', input)
         if '=>' in input or 'function' in input: return [] # Handle es6 arrow function edge case `(x) => {...}`
         colon_pos = find_not_in_string(input, ':')
         if _flowtype_enabled:
@@ -428,12 +425,10 @@ def parse_params(input, _flowtype_enabled = True):
         end = split_points[i]
         str_split.append(input[start:end])
     if split_points: str_split.append(input[split_points[-1] + 1 : ])
-    # print('split', str_split)
 
     to_strip = PARAM_DELIMITERS_STRIP + ' \t'
     for param in str_split:
         param = param.strip(to_strip)
-        # print('param', param)
         if not param: continue
         params.extend(parse_params(param, _flowtype_enabled))
 
@@ -857,7 +852,6 @@ def create_log_statement(input, alt_identifier, take_inner):
     if not strat_value and not strat_simple_var:
         strat_params = parse_strategy_params(input, take_inner)
 
-    # print(strat_value, strat_simple_var, strat_params)
 
     strat = strat_value or strat_simple_var or strat_params
 
@@ -886,7 +880,6 @@ def create_log_statement(input, alt_identifier, take_inner):
             or "'" + shorten(p['name']).replace("'", "\\'") + ":', " + p['name'] # 'name': name
         for p in params
     ])
-    print(strat, params, args)
 
     return "console.log(%s)" % (', '.join(args))
 
@@ -908,7 +901,6 @@ def cycle_log_types(view, edit, line_region, line, direction):
 
     inc = direction == 'down' and 1 or -1
     next_type = LOG_TYPES[(LOG_TYPES.index(current_type) + inc) % len(LOG_TYPES)]
-    print(current_type, next_type)
     new_line = line.replace('console.' + current_type, 'console.' + next_type)
 
     view.replace(edit, line_region, new_line)
