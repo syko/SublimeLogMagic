@@ -21,6 +21,8 @@ You can also run these commands manually:
 
 Any log statement is just a keyboard shortuct away
 
+![Log anything quickly](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-anything.gif "Log anything quickly")
+
 ### Log anything
 
 LogMagic inspects the current line and tries to extract interesting information from it:
@@ -31,8 +33,6 @@ LogMagic inspects the current line and tries to extract interesting information 
 - supports ES6 optional parameters
 - supports [flowtype](http://flowtype.org) (to some extent)
 - falls back to printing `L<line number>` if it fails to parse anything meaningful
-
-![Log anything quickly](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-anything.gif "Log anything quickly")
 
 ### Cycle through log types
 
