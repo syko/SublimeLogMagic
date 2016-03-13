@@ -492,7 +492,7 @@ def filter_params(params):
     for i in params:
         if i['name'] not in unique_names \
         and i['name'].strip('"`\'[](){}') \
-        and i['name'].lower() not in['true', 'false', 'null'] \
+        and i['name'] not in['true', 'false', 'null', 'undefined'] \
         and not i['name'].replace('.', '').isdigit():
             unique_names.add(i['name'])
             filtered.append(i)
