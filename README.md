@@ -75,12 +75,12 @@ You can override the custom keyboard shortcuts by adding this to your personal k
 
 ```json
 [
-    { "keys": ["super+alt+j"], "command": "log_javascript_statement_down", "context":
+    { "keys": ["super+alt+j"], "command": "log_magic_down", "context":
         [
             { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
         ]
     },
-    { "keys": ["super+alt+k"], "command": "log_javascript_statement_up", "context":
+    { "keys": ["super+alt+k"], "command": "log_magic_up", "context":
         [
             { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
         ]

@@ -1,10 +1,10 @@
 [
-    { "keys": ["ctrl+alt+j"], "command": "log_javascript_statement_down", "context":
+    { "keys": ["ctrl+alt+j"], "command": "log_magic_down", "context":
         [
             { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
         ]
     },
-    { "keys": ["ctrl+alt+k"], "command": "log_javascript_statement_up", "context":
+    { "keys": ["ctrl+alt+k"], "command": "log_magic_up", "context":
         [
             { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
         ]
