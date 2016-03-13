@@ -32,6 +32,7 @@ LogMagic inspects the current line and tries to extract interesting information 
 - supports ES6 destructuring
 - supports ES6 optional parameters
 - supports [flowtype](http://flowtype.org) (to some extent)
+- ignores known values such as numbers, `true,` `false`, `null` and `undefined`
 - falls back to printing `L<line number>` if it fails to parse anything meaningful
 
 ### Cycle through log types
