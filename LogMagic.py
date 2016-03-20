@@ -434,12 +434,6 @@ def parse_params(input, _flowtype_enabled = True):
 
     return filter_params(params)
 
-
-
-# def is_variable(input):
-#     "Return true if input is a simple variable"
-#     return re.match('^[^\(\)\[\]\{\}\.,+~$*/~`"\'-]*$', input) is not None
-
 def clean_line(input):
     "Clean whole line of unnecessary stuff"
     input = input.strip()
