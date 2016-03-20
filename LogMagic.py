@@ -2,8 +2,42 @@ import os, os.path, re, codecs
 
 LOG_TYPES = ['log', 'info', 'warn', 'error']
 STRING_DELIMITERS =['"', "'", '`']
-PARAM_DELIMITERS = [',','+','-','*','/','-','&&','||',{'re': r'(?<!=)>'},'<','==']
+PARAM_DELIMITERS = [
+    {'str': ','},
+    {'str': '+'},
+    {'str': '-'},
+    {'str': '*'},
+    {'str': '/'},
+    {'str': '-'},
+    {'str': '&&'},
+    {'str': '||'},
+    {'str': '<'},
+    {'str': '=='},
+    {'str': 'in'},
+    {'re': r'(?<!=)>', 'len': 1},
+    {'re': r'(?<=\s)and(?=\s)', 'len': 3},
+    {'re': r'(?<=\s)or(?=\s)', 'len': 2},
+    {'re': r'(?<=\s)is(?=\s)', 'len': 2},
+    {'re': r'(?<=\s)isnt(?=\s)', 'len': 4}
+]
+INTERESTING_INDICATORS = [
+    ',',
+    '+',
+    '-',
+    '/',
+    '*',
+    '&',
+    '|',
+    '%',
+    {'re': r'(?<=\s)in(?=\s)'},
+    {'re': r'(?<=\s)and(?=\s)'},
+    {'re': r'(?<=\s)or(?=\s)'},
+    {'re': r'(?<=\s)is(?=\s)'},
+    {'re': r'(?<=\s)isnt(?=\s)'}
+]
 PARAM_DELIMITERS_STRIP = ''.join([',','+','-','*','/','-','&&','||','>','<','=='])
+INDENT_IDENTIFIERS = ['if', 'else']
+INDENT_ENDINGS = ['{', '=', ':', '->', '=>']
 
 def infinite(max_iterations = 200):
     "A generator for use in place of `while True`. Comes with friendly infinite loop protection."
@@ -128,6 +162,8 @@ def find_not_in_string(input, char, start = 0):
     for i in infinite():
         if isinstance(char, str):
             index = input.find(char, index)
+        elif char.get('str'): # {str:...} obj
+            index = input.find(char['str'], index)
         else: # {re:...} obj
             matches = re.search(char['re'], input[index:])
             index = matches and index + matches.start(0) or -1
@@ -399,32 +435,37 @@ def parse_params(input, _flowtype_enabled = True):
     params = []
 
     split_points = []
-    for i in PARAM_DELIMITERS:
-        split_points.extend(find_all_not_in_parens_or_strings(input, i))
+    for delim in PARAM_DELIMITERS:
+        points = find_all_not_in_parens_or_strings(input, delim)
+        points = [
+            {'pos': p, 'len': delim.get('len') or len(delim['str'])}
+            for p in points
+        ]
+        split_points.extend(points)
 
-    split_points.sort()
+    split_points = sorted(split_points, key = lambda x: x['pos'])
 
     is_single_param = not split_points
 
     if is_single_param: # End recursion
         if '=>' in input or 'function' in input: return [] # Handle es6 arrow function edge case `(x) => {...}`
-        colon_pos = find_not_in_string(input, ':')
+        colon_pos = find_all_not_in_parens_or_strings(input, ':')
         if _flowtype_enabled:
             # Flowtype annotations: Remove object value `foo: Number` => `foo`
-            if colon_pos != -1:
-                input = input[ : colon_pos].rstrip()
+            if colon_pos:
+                input = input[ : colon_pos[0]].rstrip()
         else:
             # Es6 destructuring: Remove object key `foo: bar` => `bar`
-            if colon_pos != -1:
-                input = input[colon_pos + 1 : ].rstrip()
+            if colon_pos:
+                input = input[colon_pos[0] + 1 : ].rstrip()
         param = clean_param(input)
         return filter_params([{"name": param, "type": get_param_type(param)}])
 
     for i in range(len(split_points)):
-        start = i > 0 and split_points[i - 1] + 1 or 0
-        end = split_points[i]
+        start = i > 0 and split_points[i - 1]['pos'] + split_points[i -1]['len'] or 0
+        end = split_points[i]['pos']
         str_split.append(input[start:end])
-    if split_points: str_split.append(input[split_points[-1] + 1 : ])
+    if split_points: str_split.append(input[split_points[-1]['pos'] + split_points[-1]['len'] : ])
 
     to_strip = PARAM_DELIMITERS_STRIP + ' \t'
     for param in str_split:
@@ -461,6 +502,14 @@ def clean_param(input):
     "Clean a single param"
 
     input = input.strip(' \t;')
+
+    # Remove coffee's trailing if
+    if_pos = find_not_in_string(input, 'if')
+    if if_pos != -1:
+        input = input[:if_pos]
+    unless_pos = find_not_in_string(input, 'unless')
+    if unless_pos != -1:
+        input = input[:unless_pos]
 
     # Remove wrapping parens
     while input and is_wrapped(input): input = input[1:-1]
@@ -516,10 +565,14 @@ def insert_log_statement(view, edit, line_region, direction, statement):
         newline_tmpl = "%s\n"
         indentline_region = view.line(line_region.a - 1) # Inspect indent from previous line
 
-    def find_last_line_with_content(region):
+    def find_next_line_with_content(region):
         "Find the last line that has non-whitespace characters"
-        while region.a > 0 and not view.substr(region).strip():
-            region = view.line(region.a - 1)
+        import sublime
+        while 0 < region.a and region.b < view.size() and view.classify(region.a) is sublime.CLASS_EMPTY_LINE:
+            if direction == 'down':
+                region = view.line(region.a - 1)
+            else:
+                region = view.line(region.b + 1)
         return region
 
     def get_indent_of_line(region):
@@ -529,12 +582,16 @@ def insert_log_statement(view, edit, line_region, direction, statement):
         return matches and len(matches) and matches[0] or ''
 
 
-    indentline_region = find_last_line_with_content(indentline_region)
-    indent_str = get_indent_of_line(indentline_region)
+    indent_str = get_indent_of_line(line_region)
 
-    should_indent = len(re.findall(r'(:|=|{)\s*$', view.substr(indentline_region))) # Last line ends with :, = or {
-    if should_indent:
-        indent_str += len(indent_str) and indent_str[0] == '\t' and '\t' or '  ' # Umm.. just assume 2 spaces if using spaces
+    if direction == 'down': # Add extra indent if opening new block
+        indentline_region = find_next_line_with_content(indentline_region)
+        indent_line = view.substr(indentline_region).strip()
+        should_indent = [True for i in INDENT_ENDINGS if indent_line.endswith(i)]
+        indent_line.lstrip('{}[]() \t')
+        should_indent = should_indent or [True for i in INDENT_IDENTIFIERS if indent_line.startswith(i)]
+        if should_indent:
+            indent_str += len(indent_str) and indent_str[0] == '\t' and '\t' or '  ' # Umm.. just assume 2 spaces if using spaces
 
     statement = indent_str + statement
     statement = newline_tmpl % statement
@@ -546,7 +603,7 @@ def insert_log_statement(view, edit, line_region, direction, statement):
     selection_start = insert_point + len(statement) - 1
     view.sel().add(sublime.Region(selection_start))
 
-def create_log_statement(input, alt_identifier, take_inner):
+def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     """
     Return the final log statement to be inserted.
     take_inner indicates wether we'er biased to inspecting the inner statement (towards the right)
@@ -557,134 +614,170 @@ def create_log_statement(input, alt_identifier, take_inner):
     Simple assignments:
     (simply log variable) (strategy simple_var)
 
-    >>> create_log_statement('var foo = 1', 'alt', True)
+    >>> create_log_statement('var foo = 1', 'alt', True, True)
     "console.log('foo', foo)"
 
-    >>> create_log_statement('var obj = {a: 1}', 'alt', True)
+    >>> create_log_statement('var obj = {a: 1}', 'alt', True, True)
     "console.log('obj', obj)"
 
-    >>> create_log_statement('var obj = getObj(1, 2)', 'alt', True)
+    >>> create_log_statement('var obj = getObj(1, 2)', 'alt', True, True)
+    "console.log('obj', obj)"
+
+    >>> create_log_statement('obj = getObj(1, 2)', 'alt', True, False) # coffee
+    "console.log('obj', obj)"
+
+    >>> create_log_statement('obj = getObj 1, 2', 'alt', True, False) # coffee
     "console.log('obj', obj)"
 
 
     Simple assignments + interesting values:
     (take value, split apart) (strategy value)
 
-    >>> create_log_statement('var foo = a + b', 'alt', True)
+    >>> create_log_statement('var foo = a + b', 'alt', True, True)
     "console.log('foo', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('var foo = fn(1, 2) + b', 'alt', True)
+    >>> create_log_statement('var foo = fn(1, 2) + b', 'alt', True, True)
+    "console.log('foo', 'fn(1, 2):', fn(1, 2), 'b:', b)"
+
+    >>> create_log_statement('foo = fn(1, 2) + b', 'alt', True, False) # coffee
     "console.log('foo', 'fn(1, 2):', fn(1, 2), 'b:', b)"
 
 
     Complex assignments:
     (take assignee, split apart) (strategy simple_var)
 
-    >>> create_log_statement('var {a, b} = getObj(1, 2)', 'alt', True) # Switch to id + break apart,
+    >>> create_log_statement('var {a, b} = getObj(1, 2)', 'alt', True, True) # Switch to id + break apart
     "console.log('{a, b}', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('var {a:c, b:d} = getObj(1, 2)', 'alt', True)
+    >>> create_log_statement('{a, b} = getObj(1, 2)', 'alt', True, False) # coffee
+    "console.log('{a, b}', 'a:', a, 'b:', b)"
+
+    >>> create_log_statement('var {a:c, b:d} = getObj(1, 2)', 'alt', True, True)
     "console.log('{a:c, b:d}', 'c:', c, 'd:', d)"
 
-    >>> create_log_statement('var [a, b] = getArr(1, 2)', 'alt', True)
+    >>> create_log_statement('var [a, b] = getArr(1, 2)', 'alt', True, True)
     "console.log('[a, b]', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('var [a, b, ...rest] = getArr(1, 2)', 'alt', True)
+    >>> create_log_statement('var [a, b, ...rest] = getArr(1, 2)', 'alt', True, True)
     "console.log('[a, b, ...rest]', 'a:', a, 'b:', b, 'rest:', rest)"
 
-    >>> create_log_statement('let {[a]: b} = getObj()', 'alt', True)
+    >>> create_log_statement('[a, b, ...rest] = getArr(1, 2)', 'alt', True, False) # coffee
+    "console.log('[a, b, ...rest]', 'a:', a, 'b:', b, 'rest:', rest)"
+
+    >>> create_log_statement('let {[a]: b} = getObj()', 'alt', True, True)
     "console.log('{[a]: b}', 'b:', b)"
 
 
     Simple assignments + flowtype
     (simply log variable) (strategy simple_var)
 
-    >>> create_log_statement('var obj:{a:String, b:Number} = getObj(1, 2)', 'alt', True)
+    >>> create_log_statement('var obj:{a:String, b:Number} = getObj(1, 2)', 'alt', True, True)
     "console.log('obj', obj)"
 
-    |>>> create_log_statement('var obj:{a:String, b:Number} = {a:"foo', b:1}", 'alt', True)
+    >>> create_log_statement('var obj:{a:String, b:Number} = {a:"foo", b:1}', 'alt', True, True)
     "console.log('obj', obj)"
 
 
     Return
     (take value, split apart) (strategy value)
 
-    >>> create_log_statement('return 1', 'alt', True)
+    >>> create_log_statement('return 1', 'alt', True, True)
     "console.log('return')"
 
-    >>> create_log_statement('return {a:1, b:2}', 'alt', True)
+    >>> create_log_statement('return {a:1, b:2}', 'alt', True, True)
     "console.log('return')"
 
-    >>> create_log_statement('return getObj(1, 2)', 'alt', True)
+    >>> create_log_statement('return getObj(1, 2)', 'alt', True, True)
     "console.log('return', 'getObj(1, 2):', getObj(1, 2))"
 
-    >>> create_log_statement('return a + b', 'alt', True)
+    >>> create_log_statement('return a + b', 'alt', True, True)
     "console.log('return', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('return fn(1, 2) + b', 'alt', True)
+    >>> create_log_statement('return fn(1, 2) + b', 'alt', True, True)
     "console.log('return', 'fn(1, 2):', fn(1, 2), 'b:', b)"
 
 
     If (same as Return but more explicit)
     (take value, split apart, log explicitly) (strategy value + explicit)
 
-    >>> create_log_statement('if(a)', 'alt', True)
+    >>> create_log_statement('if(a)', 'alt', True, True)
     "console.log('if', 'a:', a)"
 
-    >>> create_log_statement('if(a) {', 'alt', True)
+    >>> create_log_statement('if(a) {', 'alt', True, True)
     "console.log('if', 'a:', a)"
 
-    >>> create_log_statement('} else if(a) {', 'alt', True)
+    >>> create_log_statement('} else if(a) {', 'alt', True, True)
     "console.log('if', 'a:', a)"
 
-    >>> create_log_statement('if(getObj(1, 2))', 'alt', True)
+    >>> create_log_statement('if(getObj(1, 2))', 'alt', True, True)
     "console.log('if', 'getObj(1, 2):', getObj(1, 2))"
 
-    >>> create_log_statement('if(a + b)', 'alt', True)
+    >>> create_log_statement('if(a + b)', 'alt', True, True)
     "console.log('if', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('if(fn(1, 2) + b)', 'alt', True)
+    >>> create_log_statement('if(fn(1, 2) + b)', 'alt', True, True)
     "console.log('if', 'fn(1, 2):', fn(1, 2), 'b:', b)"
 
 
     Function calls
     (take params, split apart) (strategy params)
 
-    >>> create_log_statement('fn(a, b)', 'alt', True)
+    >>> create_log_statement('fn(a, b)', 'alt', True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn(a, {b:d, c:f})', 'alt', True)
+    >>> create_log_statement('fn(a, {b:d, c:f})', 'alt', True, True)
     "console.log('fn', 'a:', a, 'd:', d, 'f:', f)"
+
+    >>> create_log_statement('fn a, b', 'alt', True, False) # coffee
+    "console.log('fn', 'a:', a, 'b:', b)"
+
+    >>> create_log_statement('fn a, {b:c} ', 'alt', True, False) # coffee
+    "console.log('fn', 'a:', a, 'c:', c)"
+
+    >>> create_log_statement('fn a, fn(b, c) ', 'alt', True, False) # coffee
+    "console.log('fn', 'a:', a, 'fn(b, c):', fn(b, c))"
 
 
     Function definitions
     (take params, split apart) (strategy params)
 
-    >>> create_log_statement('function fn(a, b) {', 'alt', True)
+    >>> create_log_statement('function fn(a, b) {', 'alt', True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('var fn = function(a, b) {', 'alt', True)
+    >>> create_log_statement('var fn = function(a, b) {', 'alt', True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn(a, b) {', 'alt', True)
+    >>> create_log_statement('fn(a, b) {', 'alt', True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn(a, b): any {', 'alt', True)
+    >>> create_log_statement('fn = (a, b) =>', 'alt', True, False) # coffee
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn = (a, b) => {', 'alt', True)
+    >>> create_log_statement('fn = (a, b) ->', 'alt', True, False) # coffee
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('function fn({a = 5, b = 10} = {}) {', 'alt', True)
+    >>> create_log_statement('fn: (a, b) ->', 'alt', True, False) # coffee
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn(a: Number, b: Number = 25) {', 'alt', True)
+    >>> create_log_statement('fn(a, b): any {', 'alt', True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn({a: value1, b: value2} = {}) {', 'alt', True)
+    >>> create_log_statement('fn = (a, b) => {', 'alt', True, True)
+    "console.log('fn', 'a:', a, 'b:', b)"
+
+    >>> create_log_statement('function fn({a = 5, b = 10} = {}) {', 'alt', True, True)
+    "console.log('fn', 'a:', a, 'b:', b)"
+
+    >>> create_log_statement('function fn ({a = 5, b = 10} = {}) ->', 'alt', True, False) # coffee
+    "console.log('fn', 'a:', a, 'b:', b)"
+
+    >>> create_log_statement('fn(a: Number, b: Number = 25) {', 'alt', True, True)
+    "console.log('fn', 'a:', a, 'b:', b)"
+
+    >>> create_log_statement('fn({a: value1, b: value2} = {}) {', 'alt', True, True)
     "console.log('fn', 'value1:', value1, 'value2:', value2)"
 
-    >>> create_log_statement('fn({a, b = 25}:SomeType = {}) {', 'alt', True)
+    >>> create_log_statement('fn({a, b = 25}:SomeType = {}) {', 'alt', True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
 
@@ -779,6 +872,8 @@ def create_log_statement(input, alt_identifier, take_inner):
         if is_return:
             strat['identifier_str'] = 'return'
             input = input[input.find('return') + 6 :].lstrip()
+            if input.startswith('if'): input = input[3:].lstrip()
+            elif input.startswith('unless'): input = input[7:].lstrip()
 
         # Find first part of assignment `var foo:{a: Number} = {...}` => `var foo:{a: Number}`
         input = _parse_assignee(input) or input
@@ -794,7 +889,7 @@ def create_log_statement(input, alt_identifier, take_inner):
         if not strat: return None
 
         # Find second part of assignment `var foo:{a: Number} = {...}` => `{...}`
-        equals = find_all_not_in_parens_or_strings(input, '=')
+        equals = find_all_not_in_parens_or_strings(input, {'re': r'=(?!\>)'})
         if not equals: return None
         input = input[equals[0] + 1 : ].lstrip()
 
@@ -803,17 +898,15 @@ def create_log_statement(input, alt_identifier, take_inner):
         if is_wrapped(input):
             return strat
 
-        interesting_indicators = [',', '+', '-', '/', '*', '&', '|', '%']
-
         ii_found_in_assignment = [
             i for i in
-            [find_not_in_string(input, i) for i in interesting_indicators]
+            [find_not_in_string(input, i) for i in INTERESTING_INDICATORS]
             if i != -1
         ]
 
         ii_found_in_assignee = [
             i for i in
-            [find_not_in_string(strat['identifier_str'], i) for i in interesting_indicators]
+            [find_not_in_string(strat['identifier_str'], i) for i in INTERESTING_INDICATORS]
             if i != -1
         ]
 
@@ -823,11 +916,25 @@ def create_log_statement(input, alt_identifier, take_inner):
 
         return None
 
-    def parse_strategy_params(input, take_inner):
+    def parse_strategy_params_coffee(input, take_inner):
         strat = {}
+        matches = re.findall(r'^([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)\s+([^\s=]+.*)\s*$', input)
+        if not matches or not len(matches): return None
+
+        strat['identifier_str'] = matches[0][0].strip()
+        strat['param_str'] = matches[0][1].strip()
+
+        if strat['identifier_str'] in ['var', 'let', 'const', 'function']: return None
+
+        return strat
+
+
+    def parse_strategy_params(input, take_inner):
+        strat = {'param_str': ''}
         # Look for fat arrow without parens first
         if take_inner:
             arrows = find_all_not_in_parens_or_strings(input, '=>')
+            arrows.extend(find_all_not_in_parens_or_strings(input, '->'))
             if arrows:
                 # Get variable without parens before arrow (`x => ...`)
                 matches = re.search(r'([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)\s*$', input[:arrows[-1]])
@@ -844,12 +951,15 @@ def create_log_statement(input, alt_identifier, take_inner):
                 strat['param_str'] = input[parens[0] + 1 : parens[1]]
                 input = input[:parens[0]].rstrip()
 
-        if strat.get('param_str') is None: return None
-
         # Find identifier
         strat['identifier_str'] = _parse_assignee(input) or _parse_function_name(input)
 
         return strat
+
+    def parse_strategy_fallback(input, take_inner):
+        return {
+            'param_str': input
+        }
 
 
     strat_value = None
@@ -861,13 +971,13 @@ def create_log_statement(input, alt_identifier, take_inner):
     strat_value = parse_strategy_value(input, take_inner)
     strat_simple_var = parse_strategy_simple_var(input, take_inner)
     if not strat_value and not strat_simple_var:
-        strat_params = parse_strategy_params(input, take_inner)
+        strat_params = parse_strategy_params_coffee(input, take_inner) or parse_strategy_params(input, take_inner)
+        strat_coffee_return = parse_strategy_fallback(input, take_inner)
 
-
-    strat = strat_value or strat_simple_var or strat_params
+    strat = strat_value or strat_simple_var or strat_params or strat_coffee_return
 
     if strat:
-        params = parse_params(strat['param_str'])
+        params = parse_params(strat['param_str'], flowtype_enabled)
 
     # If assignment with only 1 param, no need to expand it, switch to simple_var
     if len(params) == 1 and strat_simple_var and strat is not strat_simple_var:
@@ -925,13 +1035,15 @@ def log_statement_command(view, edit, direction = 'down'):
 
     (line_region, line) = get_current_line(view)
 
+    flowtype_enabled = 'scope.js' in view.scope_name(line_region.a)
+
     if is_log_statement(line):
         return cycle_log_types(view, edit, line_region, line, direction)
 
     line_nr, col_nr = view.rowcol(line_region.a)
     alt_identifier = "L%d" % (line_nr + 3)
 
-    statement = create_log_statement(line, alt_identifier, direction == 'down')
+    statement = create_log_statement(line, alt_identifier, direction == 'down', flowtype_enabled)
     insert_log_statement(view, edit, line_region, direction, statement)
 
 if __name__ == "__main__":
