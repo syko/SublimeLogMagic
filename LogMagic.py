@@ -438,6 +438,12 @@ def clean_line(input):
     "Clean whole line of unnecessary stuff"
     input = input.strip()
 
+    # Remove trailing comments
+
+    point = find_not_in_string(input, '//')
+    if point != -1:
+        input = input[:point].rstrip()
+
     # Remove wrapping parens
     while input and is_wrapped(input): input = input[1:-1]
 
@@ -686,29 +692,39 @@ def create_log_statement(input, alt_identifier, take_inner):
     Callbacks
     (take params, split apart) (strategy params)
 
-    >>> create_log_statement('fn(a, b).then(function(a) {', 'alt', True)
+    >>> create_log_statement('fn(a, b).then(function(a) {', 'alt', True, True)
     "console.log('alt', 'a:', a)"
 
-    >>> create_log_statement('fn(a, b).then((a) => {', 'alt', True)
+    >>> create_log_statement('fn(a, b).then((a) => {', 'alt', True, True)
     "console.log('alt', 'a:', a)"
 
-    >>> create_log_statement('fn(a, b).then(a => { 1 })', 'alt', True)
+    >>> create_log_statement('fn(a, b).then(a => { 1 })', 'alt', True, True)
     "console.log('alt')"
 
-    >>> create_log_statement('success: function(a) {', 'alt', True)
+    >>> create_log_statement('success: function(a) {', 'alt', True, True)
     "console.log('success', 'a:', a)"
 
-    >>> create_log_statement('success: (a) => {', 'alt', True)
-    "console.log('success', 'a:', a)"
+    >>> create_log_statement('success: (a, b) ->', 'alt', True, False) # coffee
+    "console.log('success', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn(a => {', 'alt', True)
+    >>> create_log_statement('success: (a, b) => {', 'alt', True, False) # coffee
+    "console.log('success', 'a:', a, 'b:', b)"
+
+    >>> create_log_statement('fn(a => {', 'alt', True, True)
     "console.log('fn', 'a:', a)"
 
-    >>> create_log_statement('success: ({a = 5, b = 10}) => {', 'alt', True)
+    >>> create_log_statement('fn (a) ->', 'alt', True, False) # coffee
+    "console.log('fn', 'a:', a)"
+
+    >>> create_log_statement('fn ({a}) ->', 'alt', True, False) # coffee
+    "console.log('fn', 'a:', a)"
+
+    >>> create_log_statement('success: ({a = 5, b = 10}) => {', 'alt', True, True)
     "console.log('success', 'a:', a, 'b:', b)"
     """
 
     def _parse_assignee(input):
+        if not input: return None
         equals = find_all_not_in_parens_or_strings(input, '=')
         colons = find_all_not_in_parens_or_strings(input, ':')
         if not equals and not colons: return None
@@ -730,6 +746,7 @@ def create_log_statement(input, alt_identifier, take_inner):
 
     def _parse_function_name(input):
         "Return the function name at the end of the string"
+        if not input: return None
         name = None
         extra = '' # Append this to what we find with regex
         while input[-1] in ')}]':
