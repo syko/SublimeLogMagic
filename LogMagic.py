@@ -920,6 +920,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         strat = {}
         matches = re.findall(r'^([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)\s+([^\s=]+.*)\s*$', input)
         if not matches or not len(matches): return None
+        if matches[0][0] in ['export', 'default']: return None
 
         strat['identifier_str'] = matches[0][0].strip()
         strat['param_str'] = matches[0][1].strip()
