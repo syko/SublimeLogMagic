@@ -782,6 +782,12 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     >>> create_log_statement('fn({a, b = 25}:SomeType = {}) {', 'alt', True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
+    >>> create_log_statement('export function fn(a, b) {', 'alt', True, True)
+    "console.log('fn', 'a:', a, 'b:', b)"
+
+    >>> create_log_statement('export default function fn(a, b) {', 'alt', True, True)
+    "console.log('fn', 'a:', a, 'b:', b)"
+
 
 
     Callbacks
