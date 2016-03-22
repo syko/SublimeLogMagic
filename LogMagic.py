@@ -542,6 +542,8 @@ def filter_params(params):
         if i['name'] not in unique_names \
         and i['name'].strip('"`\'[](){}') \
         and i['name'] not in['true', 'false', 'null', 'undefined'] \
+        and not i['name'].startswith('.') \
+        and not i['name'].endswith('.') \
         and not i['name'].replace('.', '').isdigit():
             unique_names.add(i['name'])
             filtered.append(i)
@@ -712,7 +714,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     >>> create_log_statement('if(getObj(1, 2))', 'alt', True, True)
     "console.log('if', 'getObj(1, 2):', getObj(1, 2))"
 
-    >>> create_log_statement('if(a + b)', 'alt', True, True)
+    >>> create_log_statement('if (a + b)', 'alt', True, True)
     "console.log('if', 'a:', a, 'b:', b)"
 
     >>> create_log_statement('if(fn(1, 2) + b)', 'alt', True, True)
@@ -789,10 +791,10 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     "console.log('alt', 'a:', a)"
 
     >>> create_log_statement('fn(a, b).then((a) => {', 'alt', True, True)
-    "console.log('alt', 'a:', a)"
+    "console.log('then', 'a:', a)"
 
     >>> create_log_statement('fn(a, b).then(a => { 1 })', 'alt', True, True)
-    "console.log('alt')"
+    "console.log('then')"
 
     >>> create_log_statement('success: function(a) {', 'alt', True, True)
     "console.log('success', 'a:', a)"
@@ -849,14 +851,14 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
             extra = input[parens[0] : parens[1] + 1] + extra
             input = input[:parens[0]]
 
-        input = input.rstrip('=>:()[]{} \t')
+        input = input.rstrip('-=>:()[]{} \t')
         matches = re.findall(r'([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)$', input)
         if matches and len(matches):
             name = matches[0].strip('.') + extra
         else:
             name = extra
 
-        return name not in ['then', 'function'] and name or None
+        return name not in ['function'] and name or None
 
     def parse_strategy_simple_var(input, take_inner):
         while input and is_wrapped(input): input = input[1:-1]
@@ -918,7 +920,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
 
     def parse_strategy_params_coffee(input, take_inner):
         strat = {}
-        matches = re.findall(r'^([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)\s+([^\s=]+.*)\s*$', input)
+        matches = re.findall(r'^([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)\s+([^\s=\(\)\[\]\{\}]+.*)\s*$', input)
         if not matches or not len(matches): return None
         if matches[0][0] in ['export', 'default']: return None
 
@@ -938,7 +940,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
             arrows.extend(find_all_not_in_parens_or_strings(input, '->'))
             if arrows:
                 # Get variable without parens before arrow (`x => ...`)
-                matches = re.search(r'([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)\s*$', input[:arrows[-1]])
+                matches = re.search(r'([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)\(?(\(\s*\))?\s*$', input[:arrows[-1]])
                 if matches:
                     strat['param_str'] = matches.group(1)
                     input = input[:matches.start(0)].rstrip()
