@@ -925,6 +925,17 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         ]
 
         if ii_found_in_assignment and not ii_found_in_assignee:
+            if not take_inner:
+                # Remove lambdas
+                fn = find_all_not_in_parens_or_strings(input, 'function')
+                if fn:
+                    input = input[:fn[0]]
+                else:
+                    arrows = find_all_not_in_parens_or_strings(input, '=>')
+                    arrows.extend(find_all_not_in_parens_or_strings(input, '->'))
+                    parens = rfind_matching_parens(input)
+                    if arrows and parens:
+                        input = input[:parens[0]]
             strat['param_str'] = input
             return strat
 
