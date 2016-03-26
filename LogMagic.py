@@ -530,7 +530,7 @@ def clean_param(input):
     # Remove wrapping parens
     while input and is_wrapped(input): input = input[1:-1]
 
-    input = input.strip(' \t;')
+    input = input.strip(' \t;?')
 
     # Remove splats
     if input.startswith('...'):
