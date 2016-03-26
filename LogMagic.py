@@ -1008,7 +1008,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         params[0]['display_key'] = False
 
     args = []
-    identifier = strat.get('identifier_str') or alt_identifier
+    identifier = shorten(clean_param(strat.get('identifier_str') or alt_identifier)).replace("'", "\\'")
     args.append("'%s'" % identifier)
     args.extend([
         (p['type'] == 'string' or not p['display_key']) \
