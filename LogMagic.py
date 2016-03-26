@@ -484,6 +484,9 @@ def clean_line(input):
     point = find_not_in_string(input, '//')
     if point != -1:
         input = input[:point].rstrip()
+    point = find_not_in_string(input, '#')
+    if point != -1:
+        input = input[:point].rstrip()
 
     # Remove wrapping parens
     while input and is_wrapped(input): input = input[1:-1]
