@@ -12,6 +12,9 @@ PARAM_DELIMITERS = [
     {'str': '&&'},
     {'str': '||'},
     {'str': '<'},
+    {'str': '<='},
+    {'str': '>='},
+    {'str': '?='},
     {'str': '=='},
     {'re': r'(?<!=)>', 'len': 1},
     {'re': r'(?<=\s)and(?=\s)', 'len': 3},
@@ -832,7 +835,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
 
     def _parse_assignee(input):
         if not input: return None
-        equals = find_all_not_in_parens_or_strings(input, '=')
+        equals = find_all_not_in_parens_or_strings(input, {'re': '(?<![<>])='})
         colons = find_all_not_in_parens_or_strings(input, ':')
         if not equals and not colons: return None
 
@@ -864,7 +867,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
             input = input[:parens[0]]
 
         input = input.rstrip('-=>:()[]{} \t')
-        matches = re.findall(r'([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)$', input)
+        matches = re.findall(r'([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)$', input)
         if matches and len(matches):
             name = matches[0].strip('.') + extra
         else:
@@ -875,9 +878,9 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     def parse_strategy_simple_var(input, take_inner):
         while input and is_wrapped(input): input = input[1:-1]
 
-        is_assignment = find_all_not_in_parens_or_strings(input, {'re': r'=(?!\>)'})
+        is_assignment = find_all_not_in_parens_or_strings(input, {'re': r'(?<![<>])=(?!\>)'})
         is_return = re.match(r'^\s*return', input)
-        is_function = re.match(r'^.*((function\s*([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)?\()|(\=\>)|(\-\>))', input)
+        is_function = re.match(r'^.*((function\s*([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)?\()|(\=\>)|(\-\>))', input)
 
         if not is_assignment and not is_return or (is_function and take_inner): return None
 
@@ -903,7 +906,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         if not strat: return None
 
         # Find second part of assignment `var foo:{a: Number} = {...}` => `{...}`
-        equals = find_all_not_in_parens_or_strings(input, {'re': r'=(?!\>)'})
+        equals = find_all_not_in_parens_or_strings(input, {'re': r'(?<![<>])=(?!\>)'})
         if not equals: return None
         input = input[equals[0] + 1 : ].lstrip()
 
@@ -943,7 +946,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
 
     def parse_strategy_params_coffee(input, take_inner):
         strat = {}
-        matches = re.findall(r'^([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)\s+([^\s=\(\)\[\]\{\}]+.*)\s*$', input)
+        matches = re.findall(r'^([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)\s+([^\s=<>\(\)\[\]\{\}]+.*)\s*$', input)
         if not matches or not len(matches): return None
         if matches[0][0] in ['export', 'default']: return None
 
@@ -963,7 +966,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
             arrows.extend(find_all_not_in_parens_or_strings(input, '->'))
             if arrows:
                 # Get variable without parens before arrow (`x => ...`)
-                matches = re.search(r'([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)\(?(\(\s*\))?\s*$', input[:arrows[-1]])
+                matches = re.search(r'([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)\(?(\(\s*\))?\s*$', input[:arrows[-1]])
                 if matches:
                     strat['param_str'] = matches.group(1)
                     input = input[:matches.start(0)].rstrip()
@@ -976,6 +979,8 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
                 if not take_inner and parens[0] != find_not_in_string(input, '('): return None
                 strat['param_str'] = input[parens[0] + 1 : parens[1]]
                 input = input[:parens[0]].rstrip()
+            else:
+                return None
 
         # Find identifier
         strat['identifier_str'] = _parse_assignee(input) or _parse_function_name(input)
