@@ -877,7 +877,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
 
         is_assignment = find_all_not_in_parens_or_strings(input, {'re': r'=(?!\>)'})
         is_return = re.match(r'^\s*return', input)
-        is_function = re.match(r'^.*((function\s*([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)?\()|(\=\>))', input)
+        is_function = re.match(r'^.*((function\s*([^\s\(\)\[\]\{\}+*/&\|=,:~-]+)?\()|(\=\>)|(\-\>))', input)
 
         if not is_assignment and not is_return or (is_function and take_inner): return None
 
