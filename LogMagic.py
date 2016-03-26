@@ -13,12 +13,12 @@ PARAM_DELIMITERS = [
     {'str': '||'},
     {'str': '<'},
     {'str': '=='},
-    {'str': 'in'},
     {'re': r'(?<!=)>', 'len': 1},
     {'re': r'(?<=\s)and(?=\s)', 'len': 3},
     {'re': r'(?<=\s)or(?=\s)', 'len': 2},
     {'re': r'(?<=\s)is(?=\s)', 'len': 2},
-    {'re': r'(?<=\s)isnt(?=\s)', 'len': 4}
+    {'re': r'(?<=\s)isnt(?=\s)', 'len': 4},
+    {'re': r'(?<=\s)in(?=\s)', 'len': 2}
 ]
 INTERESTING_INDICATORS = [
     ',',
@@ -503,13 +503,16 @@ def clean_param(input):
 
     input = input.strip(' \t;')
 
-    # Remove coffee's trailing if
-    if_pos = find_not_in_string(input, 'if')
+    # Remove coffee's trailing if, unless and for
+    if_pos = find_not_in_string(input, {'re':'\sif\s'})
     if if_pos != -1:
-        input = input[:if_pos]
-    unless_pos = find_not_in_string(input, 'unless')
+        input = input[:if_pos].strip()
+    unless_pos = find_not_in_string(input, {'re': '\sunless\s'})
     if unless_pos != -1:
-        input = input[:unless_pos]
+        input = input[:unless_pos].strip()
+    for_pos = find_not_in_string(input, {'re': '\sfor\s'})
+    if for_pos != -1:
+        input = input[:for_pos].strip()
 
     # Remove wrapping parens
     while input and is_wrapped(input): input = input[1:-1]
@@ -839,9 +842,9 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         if colons:
             input = input[:colons[0]].rstrip()
 
-        if input.startswith('var'): input = input[3:].lstrip()
-        elif input.startswith('let'): input = input[3:].lstrip()
-        elif input.startswith('const'): input = input[5:].lstrip()
+        if input.startswith('var '): input = input[3:].lstrip()
+        elif input.startswith('let '): input = input[3:].lstrip()
+        elif input.startswith('const '): input = input[5:].lstrip()
 
         return input
 
@@ -880,8 +883,8 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         if is_return:
             strat['identifier_str'] = 'return'
             input = input[input.find('return') + 6 :].lstrip()
-            if input.startswith('if'): input = input[3:].lstrip()
-            elif input.startswith('unless'): input = input[7:].lstrip()
+            if input.startswith('if '): input = input[3:].lstrip()
+            elif input.startswith('unless '): input = input[7:].lstrip()
 
         # Find first part of assignment `var foo:{a: Number} = {...}` => `var foo:{a: Number}`
         input = _parse_assignee(input) or input
