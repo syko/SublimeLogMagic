@@ -461,6 +461,10 @@ def parse_params(input, _flowtype_enabled = True):
             # Es6 destructuring: Remove object key `foo: bar` => `bar`
             if colon_pos:
                 input = input[colon_pos[0] + 1 : ].rstrip()
+        # Remove `foo as bar`
+        matches = re.match(r'(?<![^\s\(\)\[\]\{\}+*/&\|=<>,:~-])as\s+(.+)$', input)
+        if matches:
+            input = matches.group(1)
         param = clean_param(input)
         return filter_params([{"name": param, "type": get_param_type(param)}])
 
