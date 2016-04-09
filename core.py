@@ -186,8 +186,9 @@ def clean_line(input):
     while input and utils.is_wrapped(input): input = input[1:-1]
 
     # In case of import line, remove the `from ...` part to make things easier
-    if re.match(r'\s*import.*from', input):
-        input = input.split('from')[0].strip()
+    matches = re.match(r'^(\s*import\s+.+)\s+from', input)
+    if matches:
+        input = matches.group(1)
 
     return input
 
