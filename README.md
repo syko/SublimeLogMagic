@@ -1,6 +1,9 @@
 # SublimeLogMagic
 
-Easily log javascript variables and parameters with keyboard shortcuts.
+Easily log JavaScript variables and parameters with keyboard shortcuts.
+
+
+Now with CoffeeScript support!
 
 
 ## Installing
@@ -68,6 +71,12 @@ log statement (but expect kinks and bugs here).
 
 ![Log with Flowtype](https://raw.githubusercontent.com/syko/SublimeLogMagic/master/images/log-flowtype.gif "Supports some flowtype")
 
+
+### CoffeeScript support
+
+Logs stuff from coffeescript code. Even tries to understand function calls without parenthesis. Support for this is limited
+but 90% of the time it should work all the time.
+
 ## Customizing
 
 There are no customizable settings (feel free to make an issue).
@@ -91,7 +100,7 @@ You can override the custom keyboard shortcuts by adding this to your personal k
 
 ## Contributing
 
-Issues are welcome, so are PRs ;)
+Issues are welcome, especially if it spits out invalid javascript.
 
 Btw this plugin should theoretically mostly work for most C-based languages (although by default
 the keyboard shortcuts are only enabled for JavaScript and it spits out `console.*` statements).
