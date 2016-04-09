@@ -15,7 +15,8 @@ PARAM_DELIMITERS = [
     {'str': '<='},
     {'str': '>='},
     {'str': '?='},
-    {'str': '=='},
+    {'re': r'===', 'len': 3},
+    {'re': r'==', 'len': 2},
     {'re': r'(?<!=)>', 'len': 1},
     {'re': r'(?<=\s)and(?=\s)', 'len': 3},
     {'re': r'(?<=\s)or(?=\s)', 'len': 2},
@@ -405,7 +406,7 @@ def parse_params(input, _flowtype_enabled = True):
     if not input: return []
 
     # Handle destructuring
-    equals = find_all_not_in_parens_or_strings(input, '=')
+    equals = find_all_not_in_parens_or_strings(input, {'re':r'(?<!=)=(?!=)'})
     destruct_ranges = []
     for equal in equals:
         if input[equal+1] == '>': continue # Arrow function, not assignment
@@ -434,7 +435,7 @@ def parse_params(input, _flowtype_enabled = True):
         colon = input.rfind(':')
         input = input[:colon].strip()[1:-1]
 
-    str_split = []
+    input_split = []
     params = []
 
     split_points = []
@@ -469,13 +470,13 @@ def parse_params(input, _flowtype_enabled = True):
         return filter_params([{"name": param, "type": get_param_type(param)}])
 
     for i in range(len(split_points)):
-        start = i > 0 and split_points[i - 1]['pos'] + split_points[i -1]['len'] or 0
+        start = i > 0 and split_points[i - 1]['pos'] + split_points[i - 1]['len'] or 0
         end = split_points[i]['pos']
-        str_split.append(input[start:end])
-    if split_points: str_split.append(input[split_points[-1]['pos'] + split_points[-1]['len'] : ])
+        input_split.append(input[start:end])
+    if split_points: input_split.append(input[split_points[-1]['pos'] + split_points[-1]['len'] : ])
 
     to_strip = PARAM_DELIMITERS_STRIP + ' \t'
-    for param in str_split:
+    for param in input_split:
         param = param.strip(to_strip)
         if not param: continue
         params.extend(parse_params(param, _flowtype_enabled))
@@ -855,7 +856,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
 
     def _parse_assignee(input):
         if not input: return None
-        equals = find_all_not_in_parens_or_strings(input, {'re': '(?<![<>])='})
+        equals = find_all_not_in_parens_or_strings(input, {'re': '(?<![<>=])=(?!=)'})
         colons = find_all_not_in_parens_or_strings(input, ':')
         if not equals and not colons: return None
 
