@@ -541,6 +541,18 @@ def clean_param(input):
 
     return input
 
+def clean_identifier(input):
+    "Clean the log identifier"
+
+    input = input.strip(' \t;+<>-')
+
+
+    # Remove splats
+    if input.startswith('...'):
+        input = input[3:]
+
+    return input
+
 def filter_params(params):
     "Filter out duplicate params and other pointless stuff"
 
@@ -559,10 +571,10 @@ def filter_params(params):
 
     return filtered
 
-def shorten(param, max_length = 18):
+def shorten(input, max_length = 21):
     "Shortens long strings by putting '...' in the middle"
-    if len(param) <= max_length: return param
-    return param[ : max_length - 6] + '...' + param[-3:]
+    if len(input) <= max_length: return input
+    return input[ : max_length - 6] + '...' + input[-3:]
 
 
 
@@ -946,7 +958,8 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
 
     def parse_strategy_params_coffee(input, take_inner):
         strat = {}
-        matches = re.findall(r'^([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)\s+([^\s=<>\(\)\[\]\{\}]+.*)\s*$', input)
+        # Find stuff like `foo bar` and assume it's a function call
+        matches = re.findall(r'^(else if|[^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)\s+([^\s=<>\(\)\[\]\{\}]+.*)\s*$', input)
         if not matches or not len(matches): return None
         if matches[0][0] in ['export', 'default']: return None
 
@@ -996,6 +1009,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     strat_value = None
     strat_simple_var = None
     strat_params = None
+    strat_coffee_return = None
     params = []
     input = clean_line(input)
 
@@ -1024,7 +1038,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         params[0]['display_key'] = False
 
     args = []
-    identifier = shorten(clean_param(strat.get('identifier_str') or alt_identifier)).replace("'", "\\'")
+    identifier = shorten(clean_identifier(strat.get('identifier_str') or alt_identifier)).replace("'", "\\'")
     args.append("'%s'" % identifier)
     args.extend([
         (p['type'] == 'string' or not p['display_key']) \
