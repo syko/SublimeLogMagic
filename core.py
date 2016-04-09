@@ -190,6 +190,11 @@ def clean_line(input):
     if matches:
         input = matches.group(1)
 
+    # In case of coffeescript's `for ... in` remove `in...`
+    matches = re.match(r'^(\s*for\s+.+)\s+in\s*.+$', input)
+    if matches:
+      input = matches.group(1)
+
     return input
 
 def clean_param(input):
