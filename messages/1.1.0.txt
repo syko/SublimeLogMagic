@@ -1,0 +1,7 @@
+* Improved JavaScript support for statements like for, import, export
+
+* CoffeeScript support
+
+* Bugfixes
+
+If you find any bugs, please report them to https://github.com/syko/SublimeLogMagic/issues :)
