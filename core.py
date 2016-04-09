@@ -531,10 +531,16 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         is_assignment = utils.find_all_not_in_parens_or_strings(input, {'re': r'(?<![<>])=(?!\>)'})
         is_return = re.match(r'^\s*return', input)
         is_import = re.match(r'^\s*import', input)
+        is_for = re.match(r'^\s*for\(', input)
         is_export = re.match(r'^\s*export(?!\s+function)', input)
         is_function = re.match(r'^.*((function\s*([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)?\()|(\=\>)|(\-\>))', input)
 
-        if not is_assignment and not is_return and not is_export and not is_import or (is_function and take_inner): return None
+        if not is_assignment \
+        and not is_return \
+        and not is_export \
+        and not is_import \
+        or (is_function and take_inner):
+          return None
 
         strat = {}
 
@@ -549,6 +555,9 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         elif is_export:
             strat['identifier_str'] = 'export'
             input = input[input.find('export') + 6 :].lstrip()
+        elif is_for:
+            strat['identifier_str'] = 'for'
+            input = input[input.find('for') + 4 : input.find(';')].strip()
 
         # Find first part of assignment `var foo:{a: Number} = {...}` => `var foo:{a: Number}`
         input = _parse_assignee(input) or input
