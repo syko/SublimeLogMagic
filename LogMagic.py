@@ -502,6 +502,10 @@ def clean_line(input):
     # Remove wrapping parens again
     while input and is_wrapped(input): input = input[1:-1]
 
+    # In case of import line, remove the `from ...` part to make things easier
+    if re.match(r'\s*import.*from', input):
+        input = input.split('from')[0].strip()
+
     return input
 
 def clean_param(input):
@@ -892,9 +896,10 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
 
         is_assignment = find_all_not_in_parens_or_strings(input, {'re': r'(?<![<>])=(?!\>)'})
         is_return = re.match(r'^\s*return', input)
+        is_import = re.match(r'^\s*import', input)
         is_function = re.match(r'^.*((function\s*([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)?\()|(\=\>)|(\-\>))', input)
 
-        if not is_assignment and not is_return or (is_function and take_inner): return None
+        if not is_assignment and not is_return and not is_import or (is_function and take_inner): return None
 
         strat = {}
 
@@ -903,6 +908,9 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
             input = input[input.find('return') + 6 :].lstrip()
             if input.startswith('if '): input = input[3:].lstrip()
             elif input.startswith('unless '): input = input[7:].lstrip()
+        elif is_import:
+            strat['identifier_str'] = 'import'
+            input = input[input.find('import') + 6 :].lstrip()
 
         # Find first part of assignment `var foo:{a: Number} = {...}` => `var foo:{a: Number}`
         input = _parse_assignee(input) or input
