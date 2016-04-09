@@ -1092,7 +1092,7 @@ def log_statement_command(view, edit, direction = 'down'):
 
     (line_region, line) = get_current_line(view)
 
-    flowtype_enabled = 'scope.js' in view.scope_name(line_region.a)
+    flowtype_enabled = 'source.js' in view.scope_name(line_region.a)
 
     if is_log_statement(line):
         return cycle_log_types(view, edit, line_region, line, direction)
