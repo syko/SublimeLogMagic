@@ -973,7 +973,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         # Find stuff like `foo bar` and assume it's a function call
         matches = re.findall(r'^(else if|[^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)\s+([^\s=<>\(\)\[\]\{\}]+.*)\s*$', input)
         if not matches or not len(matches): return None
-        if matches[0][0] in ['export', 'default']: return None
+        if matches[0][0] in ['export', 'default', 'return', 'new', 'import', 'export', 'function']: return None
 
         strat['identifier_str'] = matches[0][0].strip()
         strat['param_str'] = matches[0][1].strip()
