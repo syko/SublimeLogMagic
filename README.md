@@ -87,12 +87,12 @@ You can override the custom keyboard shortcuts by adding this to your personal k
 [
     { "keys": ["super+alt+j"], "command": "log_magic_down", "context":
         [
-            { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
+            { "operand": "source.js,source.coffee", "operator": "equal", "match_all": true, "key": "selector" },
         ]
     },
     { "keys": ["super+alt+k"], "command": "log_magic_up", "context":
         [
-            { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
+            { "operand": "source.js,source.coffee", "operator": "equal", "match_all": true, "key": "selector" },
         ]
     }
 ]
