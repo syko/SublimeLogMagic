@@ -535,12 +535,17 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         is_export = re.match(r'^\s*export(?!\s+function)', input)
         is_function = re.match(r'^.*((function\s*([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)?\()|(\=\>)|(\-\>))', input)
 
+        # Well this is just horrible but coffeescript clashes with es6 here pretty badly so...
+        # Make sure `foo: ->` is parsed as an assignment rather than a function
+        is_function_without_parens_assignment = re.match(r'([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)\s*:\s*[^\(\)]*$', input)
+
         if not is_assignment \
+        and not is_function_without_parens_assignment \
         and not is_return \
         and not is_export \
         and not is_import \
-        or (is_function and take_inner):
-          return None
+        or (is_function and take_inner and not is_function_without_parens_assignment):
+            return None
 
         strat = {}
 
@@ -563,7 +568,8 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         input = _parse_assignee(input) or input
 
         if 'identifier_str' not in strat: strat['identifier_str'] = input
-        strat['param_str'] = input
+        if not is_function_without_parens_assignment:
+            strat['param_str'] = input
 
         return strat
 
@@ -677,12 +683,12 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     strat = strat_value or strat_simple_var or strat_params or strat_coffee_return
 
     if strat:
-        params = parse_params(strat['param_str'], flowtype_enabled)
+        params = parse_params(strat.get('param_str', ''), flowtype_enabled)
 
     # If assignment with only 1 param, no need to expand it, switch to simple_var
     if len(params) == 1 and strat_simple_var and strat is not strat_simple_var:
         strat = strat_simple_var
-        params = parse_params(strat['param_str'])
+        params = parse_params(strat.get('param_str', ''))
 
     strat = strat or {
         'display_key': True
