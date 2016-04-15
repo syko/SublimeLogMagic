@@ -420,6 +420,12 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     >>> create_log_statement('fn: (a, b) ->', 'alt', True, False) # coffee
     "console.log('fn', 'a:', a, 'b:', b)"
 
+    >>> create_log_statement('fn: ->', 'alt', True, False) # coffee
+    "console.log('fn')"
+
+    >>> create_log_statement('fn: =>', 'alt', True, False) # coffee
+    "console.log('fn')"
+
     >>> create_log_statement('fn(a, b): any {', 'alt', True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
