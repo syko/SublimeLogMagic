@@ -330,3 +330,7 @@ def shorten(input, max_length = 21):
     "Shortens long strings by putting '...' in the middle"
     if len(input) <= max_length: return input
     return input[ : max_length - 6] + '...' + input[-3:]
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

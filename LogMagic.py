@@ -69,20 +69,13 @@ def insert_log_statement(view, edit, line_region, direction, statement):
     selection_start = insert_point + len(statement) - 1
     view.sel().add(sublime.Region(selection_start))
 
-if __name__ == "__main__":
+import sublime, sublime_plugin
 
-    import doctest
-    doctest.testmod()
+class LogMagicDownCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        log_statement_command(self.view, edit, 'down')
 
-else:
-
-    import sublime, sublime_plugin
-
-    class LogMagicDownCommand(sublime_plugin.TextCommand):
-        def run(self, edit):
-            log_statement_command(self.view, edit, 'down')
-
-    class LogMagicUpCommand(sublime_plugin.TextCommand):
-        def run(self, edit):
-            log_statement_command(self.view, edit, 'up')
+class LogMagicUpCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        log_statement_command(self.view, edit, 'up')
 

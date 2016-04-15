@@ -722,3 +722,7 @@ def cycle_log_types(view, edit, line_region, line, direction):
     new_line = line.replace('console.' + current_type, 'console.' + next_type)
 
     view.replace(edit, line_region, new_line)
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
