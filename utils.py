@@ -16,6 +16,7 @@ PARAM_DELIMITERS = [
     {'str': '>='},
     {'str': '?='},
     {'re': r'===', 'len': 3},
+    {'re': r'!==', 'len': 3},
     {'re': r'==', 'len': 2},
     {'re': r'(?<!=)>', 'len': 1},
     {'re': r'(?<=\s)and(?=\s)', 'len': 3},
