@@ -653,10 +653,13 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
 
         # Look for last matching parens and use that
         if not strat.get('param_str'):
-            parens = utils.rfind_matching_parens(input, '(', ')')
+            if take_inner:
+                parens = utils.rfind_matching_parens(input, '(', ')')
+            else:
+                parens = utils.find_matching_parens(input, '(', ')')
             if parens:
                 # If take_inner is False then taking last matching parens is wrong
-                if not take_inner and parens[0] != utils.find_not_in_string(input, '('): return None
+                # if not take_inner and parens[0] != utils.find_not_in_string(input, '('): return None
                 strat['param_str'] = input[parens[0] + 1 : parens[1]]
                 input = input[:parens[0]].rstrip()
             else:
