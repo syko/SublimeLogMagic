@@ -232,6 +232,17 @@ def clean_param(input):
     if input.startswith('...'):
         input = input[3:]
 
+    # Cover up unbalanced parenthesis produced by parse errors
+    for chars in [('(',')'), ('[',']'), ('{','}')]:
+        opening_parens = utils.find_all_not_in_strings(input, chars[0])
+        closing_parens = utils.find_all_not_in_strings(input, chars[1])
+        if len(opening_parens) > len(closing_parens):
+            if opening_parens[0] == 0: input = input[1:]
+            else: input = input[ : opening_parens[0]]
+        elif len(opening_parens) < len(closing_parens):
+            if closing_parens[-1] == len(input) - 1: input = input[:-1]
+            else: input = input[ : closing_parens[-1]]
+
     return input
 
 def clean_identifier(input):

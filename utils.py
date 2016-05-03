@@ -262,6 +262,23 @@ def find_all_matching_parens(input, char_opening = '(', char_closing = ')', star
         start = parens[0] +     1
     return sorted(all_parens)
 
+def find_all_not_in_strings(input, char, start = 0):
+    """Return a list of found character positions that are not in strings.
+
+    >>> find_all_not_in_strings('fo"o,", bar', ',')
+    [6]
+
+    >>> find_all_not_in_strings('fo"o,",, bar', ',')
+    [6, 7]
+
+    """
+    all = []
+    next = -1
+    for i in infinite():
+        next = find_not_in_string(input, char, next + 1)
+        if next == -1: return all # Done
+        all.append(next)
+
 def find_all_not_in_parens_or_strings(input, char, parens = '([{', start = 0):
     """Return a list of found character positions that are not in strings or parens.
 
