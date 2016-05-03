@@ -539,7 +539,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         is_import = re.match(r'^\s*import', input)
         is_for = re.match(r'^\s*for\(', input)
         is_export = re.match(r'^\s*export(?!\s+function)', input)
-        is_function = re.match(r'^.*((function\s*([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)?\()|(\=\>)|(\-\>))', input)
+        is_function = re.match(r'^.*((function\s*([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)?\s*\()|(\=\>)|(\-\>))', input)
 
         # Well this is just horrible but coffeescript clashes with es6 here pretty badly so...
         # Make sure `foo: ->` is parsed as an assignment rather than a function
@@ -646,7 +646,7 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
             arrows.extend(utils.find_all_not_in_parens_or_strings(input, '->'))
             if arrows:
                 # Get variable without parens before arrow (`x => ...`)
-                matches = re.search(r'([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)\(?(\(\s*\))?\s*$', input[:arrows[-1]])
+                matches = re.search(r'([^\s\(\)\[\]\{\}+*/&\|=<>,:~-]+)\s*\(?(\(\s*\))?\s*$', input[:arrows[-1]])
                 if matches:
                     strat['param_str'] = matches.group(1)
                     input = input[:matches.start(0)].rstrip()
