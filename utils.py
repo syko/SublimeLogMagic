@@ -41,7 +41,6 @@ INTERESTING_INDICATORS = [
     {'re': r'(?<=\s)isnt(?=\s)'}
 ]
 PARAM_DELIMITERS_STRIP = ''.join([',','+','-','*','/','-','&&','||','>','<','=='])
-INDENT_IDENTIFIERS = ['if', 'else', 'for', 'unless']
 INDENT_ENDINGS = ['{', '=', ':', '->', '=>']
 
 def infinite(max_iterations = 200):

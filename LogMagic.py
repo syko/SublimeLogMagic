@@ -53,8 +53,7 @@ def insert_log_statement(view, edit, line_region, direction, statement):
     if direction == 'down': # Add extra indent if opening new block
         indentline_region = find_next_line_with_content(indentline_region)
         indent_line = view.substr(indentline_region).strip()
-        should_indent = [True for i in utils.INDENT_ENDINGS if indent_line.endswith(i)] \
-            and [True for i in utils.INDENT_IDENTIFIERS if indent_line.startswith(i)]
+        should_indent = [True for i in utils.INDENT_ENDINGS if indent_line.endswith(i)]
         indent_line.lstrip('{}[]() \t')
         if should_indent:
             indent_str += len(indent_str) and indent_str[0] == '\t' and '\t' or '  ' # Umm.. just assume 2 spaces if using spaces
