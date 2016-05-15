@@ -8,7 +8,7 @@ Now with CoffeeScript support!
 
 ## Installing
 
-Clone this repository into your Sublime Packages directory (Package Control support coming soon).
+Simply look for "Log Magic" in Package Control.
 
 ## Usage
 
