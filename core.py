@@ -741,10 +741,10 @@ def cycle_log_types(view, edit, line_region, line, direction):
     if not matches: return
 
     current_type = matches.group(1)
-    if current_type not in LOG_TYPES: return
+    if current_type not in utils.LOG_TYPES: return
 
     inc = direction == 'down' and 1 or -1
-    next_type = LOG_TYPES[(LOG_TYPES.index(current_type) + inc) % len(LOG_TYPES)]
+    next_type = utils.LOG_TYPES[(utils.LOG_TYPES.index(current_type) + inc) % len(utils.LOG_TYPES)]
     new_line = line.replace('console.' + current_type, 'console.' + next_type)
 
     view.replace(edit, line_region, new_line)
