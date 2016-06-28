@@ -1,22 +1,22 @@
 [
     { "keys": ["super+alt+j"], "command": "log_magic_down", "context":
         [
-            { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
+            { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" }
         ]
     },
     { "keys": ["super+alt+k"], "command": "log_magic_up", "context":
         [
-            { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" },
+            { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" }
         ]
     },
     { "keys": ["super+alt+j"], "command": "log_magic_down", "context":
         [
-            { "operand": "source.coffee", "operator": "equal", "match_all": true, "key": "selector" },
+            { "operand": "source.coffee", "operator": "equal", "match_all": true, "key": "selector" }
         ]
     },
     { "keys": ["super+alt+k"], "command": "log_magic_up", "context":
         [
-            { "operand": "source.coffee", "operator": "equal", "match_all": true, "key": "selector" },
+            { "operand": "source.coffee", "operator": "equal", "match_all": true, "key": "selector" }
         ]
     }
 ]
