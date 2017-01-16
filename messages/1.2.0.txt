@@ -1,0 +1,5 @@
+* Added support for multiple cursors (#7)
+
+* Fixed invalid syntax with multilevel destructors
+
+If you find any bugs, please report them to https://github.com/syko/SublimeLogMagic/issues :)
