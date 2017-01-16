@@ -51,11 +51,12 @@ def infinite(max_iterations = 200):
         i += 1
     raise Exception("Infinite loop protection kicked in (i=%d). Fix your crappy loop!" % i)
 
-def get_current_line(view):
+def get_current_lines(view):
     "Returns the first highlighted line region and line contents"
-    line_region = view.line(view.sel()[0])
-    line = view.substr(line_region)
-    return (line_region, line)
+    for s in view.sel():
+        line_region = view.line(s)
+        line = view.substr(line_region)
+        yield (line_region, line)
 
 def find_strings(input):
     """

@@ -8,18 +8,27 @@ def log_statement_command(view, edit, direction = 'down'):
     if the cursor is on a log statement line.
     """
 
-    (line_region, line) = utils.get_current_line(view)
+    for (line_region, line) in utils.get_current_lines(view):
+        flowtype_enabled = 'source.js' in view.scope_name(line_region.a)
 
-    flowtype_enabled = 'source.js' in view.scope_name(line_region.a)
+        if utils.is_log_statement(line):
+            return core.cycle_log_types(view, edit, line_region, line, direction)
 
-    if utils.is_log_statement(line):
-        return core.cycle_log_types(view, edit, line_region, line, direction)
+        line_nr, col_nr = view.rowcol(line_region.a)
+        alt_identifier = "L%d" % (line_nr + 3)
 
-    line_nr, col_nr = view.rowcol(line_region.a)
-    alt_identifier = "L%d" % (line_nr + 3)
+        statement = core.create_log_statement(line, alt_identifier, direction == 'down', flowtype_enabled)
+        insert_log_statement(view, edit, line_region, direction, statement)
 
-    statement = core.create_log_statement(line, alt_identifier, direction == 'down', flowtype_enabled)
-    insert_log_statement(view, edit, line_region, direction, statement)
+    # Move cursor(s) to end of log statement(s)
+
+    selections = list(view.sel())
+    view.sel().clear()
+    for s in selections:
+        line = view.full_line(s.a)
+        line_to_select = direction == 'down' and view.full_line(line.b + 1) or view.full_line(line.a - 1)
+        view.sel().add(sublime.Region(line_to_select.b - 2))
+
 
 def insert_log_statement(view, edit, line_region, direction, statement):
     import sublime
@@ -62,11 +71,6 @@ def insert_log_statement(view, edit, line_region, direction, statement):
     statement = newline_tmpl % statement
 
     view.insert(edit, insert_point, statement)
-    view.sel().clear()
-
-    # Move cursor to end of log statement
-    selection_start = insert_point + len(statement) - 1
-    view.sel().add(sublime.Region(selection_start))
 
 import sublime, sublime_plugin
 
