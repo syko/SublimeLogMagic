@@ -140,6 +140,8 @@ def parse_params(input, _flowtype_enabled = True):
             # Es6 destructuring: Remove object key `foo: bar` => `bar`
             if colon_pos:
                 input = input[colon_pos[0] + 1 : ].rstrip()
+                # Recurse to re-parse any sub-destructuring
+                return parse_params(input, _flowtype_enabled)
         # Remove `foo as bar`
         matches = re.match(r'(?<![^\s\(\)\[\]\{\}+*/&\|=<>,:~-])as\s+(.+)$', input)
         if matches:
@@ -498,6 +500,9 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
 
     >>> create_log_statement('success: ({a = 5, b = 10}) => {', 'alt', True, True)
     "console.log('success', 'a:', a, 'b:', b)"
+
+    >>> create_log_statement('$ctrl.onUpdate({ $event: { dates: event.dates } });', 'alt', True, True)
+    "console.log('$ctrl.onUpdate', 'event.dates:', event.dates)"
     """
 
     def _parse_assignee(input):
