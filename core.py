@@ -308,13 +308,13 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     (take value, split apart) (strategy value)
 
     >>> create_log_statement('var foo = a + b', 'alt', True, True)
-    "console.log('foo', 'a:', a, 'b:', b)"
+    "console.log('foo:', foo, 'a:', a, 'b:', b)"
 
     >>> create_log_statement('var foo = fn(1, 2) + b', 'alt', True, True)
-    "console.log('foo', 'fn(1, 2):', fn(1, 2), 'b:', b)"
+    "console.log('foo:', foo, 'fn(1, 2):', fn(1, 2), 'b:', b)"
 
     >>> create_log_statement('foo = fn(1, 2) + b', 'alt', True, False) # coffee
-    "console.log('foo', 'fn(1, 2):', fn(1, 2), 'b:', b)"
+    "console.log('foo:', foo, 'fn(1, 2):', fn(1, 2), 'b:', b)"
 
 
     Complex assignments:
@@ -724,8 +724,12 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         params[0]['display_key'] = False
 
     args = []
-    identifier = utils.shorten(clean_identifier(strat.get('identifier_str') or alt_identifier)).replace("'", "\\'")
-    args.append("'%s'" % identifier)
+    if strat == strat_value and strat.get('identifier_str') != strat.get('param_str'):
+        identifier = utils.shorten(clean_identifier(strat.get('identifier_str'))).replace("'", "\\'")
+        args.append("'%s:', %s" % (identifier, strat['identifier_str']))
+    else:
+        identifier = utils.shorten(clean_identifier(strat.get('identifier_str') or alt_identifier)).replace("'", "\\'")
+        args.append("'%s'" % identifier)
     args.extend([
         (p['type'] == 'string' or not p['display_key']) \
             and p['name']
