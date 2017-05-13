@@ -76,6 +76,7 @@ log statement (but expect kinks and bugs here).
 ### Remove all log statements
 
 With one command you can remove all log statements from the current file.
+
 ![Remove all log statements](images/remove-all.gif "Remove all log statements")
 
 ### CoffeeScript support
