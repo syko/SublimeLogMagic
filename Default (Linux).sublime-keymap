@@ -9,12 +9,22 @@
             { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" }
         ]
     },
+    { "keys": ["ctrl+alt+l"], "command": "log_magic_remove_all", "context":
+        [
+            { "operand": "source.js", "operator": "equal", "match_all": true, "key": "selector" }
+        ]
+    },
     { "keys": ["ctrl+alt+j"], "command": "log_magic_down", "context":
         [
             { "operand": "source.coffee", "operator": "equal", "match_all": true, "key": "selector" }
         ]
     },
     { "keys": ["ctrl+alt+k"], "command": "log_magic_up", "context":
+        [
+            { "operand": "source.coffee", "operator": "equal", "match_all": true, "key": "selector" }
+        ]
+    },
+    { "keys": ["ctrl+alt+l"], "command": "log_magic_remove_all", "context":
         [
             { "operand": "source.coffee", "operator": "equal", "match_all": true, "key": "selector" }
         ]

@@ -1,4 +1,5 @@
 [
     { "caption": "LogMagic Statement (down)", "command": "log_magic_down" , "args" : {} },
-    { "caption": "LogMagic Statement (up)", "command": "log_magic_up" , "args" : {} }
+    { "caption": "LogMagic Statement (up)", "command": "log_magic_up" , "args" : {} },
+    { "caption": "LogMagic Remove all", "command": "log_magic_remove_all" , "args" : {} }
 ]

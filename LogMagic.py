@@ -72,6 +72,24 @@ def insert_log_statement(view, edit, line_region, direction, statement):
 
     view.insert(edit, insert_point, statement)
 
+def remove_all_command(view, edit):
+
+    def findLogs():
+        while True:
+            region = view.find(r'^\s*console\.', 0)
+            if region: yield region
+            else: break
+
+    count = 0
+    for region in findLogs():
+        view.erase(edit, view.full_line(region))
+        count += 1
+
+    if count > 0:
+        sublime.status_message("LogMagic: Removed %d log statements" % count)
+    else:
+        sublime.status_message("LogMagic: No log statements found")
+
 import sublime, sublime_plugin
 
 class LogMagicDownCommand(sublime_plugin.TextCommand):
@@ -81,4 +99,8 @@ class LogMagicDownCommand(sublime_plugin.TextCommand):
 class LogMagicUpCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         log_statement_command(self.view, edit, 'up')
+
+class LogMagicRemoveAllCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        remove_all_command(self.view, edit)
 
