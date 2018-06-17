@@ -1,6 +1,7 @@
 import re
 from . import core
 from . import utils
+import os
 
 def log_statement_command(view, edit, direction = 'down'):
     """
@@ -15,9 +16,10 @@ def log_statement_command(view, edit, direction = 'down'):
             return core.cycle_log_types(view, edit, line_region, line, direction)
 
         line_nr, col_nr = view.rowcol(line_region.a)
-        alt_identifier = "L%d" % (line_nr + 3)
+        filename = os.path.basename(view.file_name())
+        lineno = line_nr + (direction == 'down' and 2 or 1)
 
-        statement = core.create_log_statement(line, alt_identifier, direction == 'down', flowtype_enabled)
+        statement = core.create_log_statement(line, filename, lineno, direction == 'down', flowtype_enabled)
         insert_log_statement(view, edit, line_region, direction, statement)
 
     # Move cursor(s) to end of log statement(s)

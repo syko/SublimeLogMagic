@@ -277,7 +277,7 @@ def filter_params(params):
 
     return filtered
 
-def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
+def create_log_statement(input, filename, lineno, take_inner, flowtype_enabled):
     """
     Return the final log statement to be inserted.
     take_inner indicates wether we'er biased to inspecting the inner statement (towards the right)
@@ -288,182 +288,182 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     Simple assignments:
     (simply log variable) (strategy simple_var)
 
-    >>> create_log_statement('var foo = 1', 'alt', True, True)
+    >>> create_log_statement('var foo = 1', 'somefile.js', 123, True, True)
     "console.log('foo', foo)"
 
-    >>> create_log_statement('var obj = {a: 1}', 'alt', True, True)
+    >>> create_log_statement('var obj = {a: 1}', 'somefile.js', 123, True, True)
     "console.log('obj', obj)"
 
-    >>> create_log_statement('var obj = getObj(1, 2)', 'alt', True, True)
+    >>> create_log_statement('var obj = getObj(1, 2)', 'somefile.js', 123, True, True)
     "console.log('obj', obj)"
 
-    >>> create_log_statement('obj = getObj(1, 2)', 'alt', True, False) # coffee
+    >>> create_log_statement('obj = getObj(1, 2)', 'somefile.js', 123, True, False) # coffee
     "console.log('obj', obj)"
 
-    >>> create_log_statement('obj = getObj 1, 2', 'alt', True, False) # coffee
+    >>> create_log_statement('obj = getObj 1, 2', 'somefile.js', 123, True, False) # coffee
     "console.log('obj', obj)"
 
 
     Simple assignments + interesting values:
     (take value, split apart) (strategy value)
 
-    >>> create_log_statement('var foo = a + b', 'alt', True, True)
+    >>> create_log_statement('var foo = a + b', 'somefile.js', 123, True, True)
     "console.log('foo:', foo, 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('var foo = fn(1, 2) + b', 'alt', True, True)
+    >>> create_log_statement('var foo = fn(1, 2) + b', 'somefile.js', 123, True, True)
     "console.log('foo:', foo, 'fn(1, 2):', fn(1, 2), 'b:', b)"
 
-    >>> create_log_statement('foo = fn(1, 2) + b', 'alt', True, False) # coffee
+    >>> create_log_statement('foo = fn(1, 2) + b', 'somefile.js', 123, True, False) # coffee
     "console.log('foo:', foo, 'fn(1, 2):', fn(1, 2), 'b:', b)"
 
 
     Complex assignments:
     (take assignee, split apart) (strategy simple_var)
 
-    >>> create_log_statement('var {a, b} = getObj(1, 2)', 'alt', True, True) # Switch to id + break apart
+    >>> create_log_statement('var {a, b} = getObj(1, 2)', 'somefile.js', 123, True, True) # Switch to id + break apart
     "console.log('{a, b}', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('{a, b} = getObj(1, 2)', 'alt', True, False) # coffee
+    >>> create_log_statement('{a, b} = getObj(1, 2)', 'somefile.js', 123, True, False) # coffee
     "console.log('{a, b}', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('var {a:c, b:d} = getObj(1, 2)', 'alt', True, True)
+    >>> create_log_statement('var {a:c, b:d} = getObj(1, 2)', 'somefile.js', 123, True, True)
     "console.log('{a:c, b:d}', 'c:', c, 'd:', d)"
 
-    >>> create_log_statement('var [a, b] = getArr(1, 2)', 'alt', True, True)
+    >>> create_log_statement('var [a, b] = getArr(1, 2)', 'somefile.js', 123, True, True)
     "console.log('[a, b]', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('var [a, b, ...rest] = getArr(1, 2)', 'alt', True, True)
+    >>> create_log_statement('var [a, b, ...rest] = getArr(1, 2)', 'somefile.js', 123, True, True)
     "console.log('[a, b, ...rest]', 'a:', a, 'b:', b, 'rest:', rest)"
 
-    >>> create_log_statement('[a, b, ...rest] = getArr(1, 2)', 'alt', True, False) # coffee
+    >>> create_log_statement('[a, b, ...rest] = getArr(1, 2)', 'somefile.js', 123, True, False) # coffee
     "console.log('[a, b, ...rest]', 'a:', a, 'b:', b, 'rest:', rest)"
 
-    >>> create_log_statement('let {[a]: b} = getObj()', 'alt', True, True)
+    >>> create_log_statement('let {[a]: b} = getObj()', 'somefile.js', 123, True, True)
     "console.log('{[a]: b}', 'b:', b)"
 
 
     Simple assignments + flowtype
     (simply log variable) (strategy simple_var)
 
-    >>> create_log_statement('var obj:{a:String, b:Number} = getObj(1, 2)', 'alt', True, True)
+    >>> create_log_statement('var obj:{a:String, b:Number} = getObj(1, 2)', 'somefile.js', 123, True, True)
     "console.log('obj', obj)"
 
-    >>> create_log_statement('var obj:{a:String, b:Number} = {a:"foo", b:1}', 'alt', True, True)
+    >>> create_log_statement('var obj:{a:String, b:Number} = {a:"foo", b:1}', 'somefile.js', 123, True, True)
     "console.log('obj', obj)"
 
 
     Return
     (take value, split apart) (strategy value)
 
-    >>> create_log_statement('return 1', 'alt', True, True)
+    >>> create_log_statement('return 1', 'somefile.js', 123, True, True)
     "console.log('return')"
 
-    >>> create_log_statement('return {a:1, b:2}', 'alt', True, True)
+    >>> create_log_statement('return {a:1, b:2}', 'somefile.js', 123, True, True)
     "console.log('return')"
 
-    >>> create_log_statement('return getObj(1, 2)', 'alt', True, True)
+    >>> create_log_statement('return getObj(1, 2)', 'somefile.js', 123, True, True)
     "console.log('return', 'getObj(1, 2):', getObj(1, 2))"
 
-    >>> create_log_statement('return a + b', 'alt', True, True)
+    >>> create_log_statement('return a + b', 'somefile.js', 123, True, True)
     "console.log('return', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('return fn(1, 2) + b', 'alt', True, True)
+    >>> create_log_statement('return fn(1, 2) + b', 'somefile.js', 123, True, True)
     "console.log('return', 'fn(1, 2):', fn(1, 2), 'b:', b)"
 
 
     If (same as Return but more explicit)
     (take value, split apart, log explicitly) (strategy value + explicit)
 
-    >>> create_log_statement('if(a)', 'alt', True, True)
+    >>> create_log_statement('if(a)', 'somefile.js', 123, True, True)
     "console.log('if', 'a:', a)"
 
-    >>> create_log_statement('if(a) {', 'alt', True, True)
+    >>> create_log_statement('if(a) {', 'somefile.js', 123, True, True)
     "console.log('if', 'a:', a)"
 
-    >>> create_log_statement('} else if(a) {', 'alt', True, True)
+    >>> create_log_statement('} else if(a) {', 'somefile.js', 123, True, True)
     "console.log('if', 'a:', a)"
 
-    >>> create_log_statement('if(getObj(1, 2))', 'alt', True, True)
+    >>> create_log_statement('if(getObj(1, 2))', 'somefile.js', 123, True, True)
     "console.log('if', 'getObj(1, 2):', getObj(1, 2))"
 
-    >>> create_log_statement('if (a + b)', 'alt', True, True)
+    >>> create_log_statement('if (a + b)', 'somefile.js', 123, True, True)
     "console.log('if', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('if(fn(1, 2) + b)', 'alt', True, True)
+    >>> create_log_statement('if(fn(1, 2) + b)', 'somefile.js', 123, True, True)
     "console.log('if', 'fn(1, 2):', fn(1, 2), 'b:', b)"
 
 
     Function calls
     (take params, split apart) (strategy params)
 
-    >>> create_log_statement('fn(a, b)', 'alt', True, True)
+    >>> create_log_statement('fn(a, b)', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn(a, {b:d, c:f})', 'alt', True, True)
+    >>> create_log_statement('fn(a, {b:d, c:f})', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'd:', d, 'f:', f)"
 
-    >>> create_log_statement('fn a, b', 'alt', True, False) # coffee
+    >>> create_log_statement('fn a, b', 'somefile.js', 123, True, False) # coffee
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn a, {b:c} ', 'alt', True, False) # coffee
+    >>> create_log_statement('fn a, {b:c} ', 'somefile.js', 123, True, False) # coffee
     "console.log('fn', 'a:', a, 'c:', c)"
 
-    >>> create_log_statement('fn a, fn(b, c) ', 'alt', True, False) # coffee
+    >>> create_log_statement('fn a, fn(b, c) ', 'somefile.js', 123, True, False) # coffee
     "console.log('fn', 'a:', a, 'fn(b, c):', fn(b, c))"
 
 
     Function definitions
     (take params, split apart) (strategy params)
 
-    >>> create_log_statement('function fn(a, b) {', 'alt', True, True)
+    >>> create_log_statement('function fn(a, b) {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('var fn = function(a, b) {', 'alt', True, True)
+    >>> create_log_statement('var fn = function(a, b) {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn(a, b) {', 'alt', True, True)
+    >>> create_log_statement('fn(a, b) {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn = (a, b) =>', 'alt', True, False) # coffee
+    >>> create_log_statement('fn = (a, b) =>', 'somefile.js', 123, True, False) # coffee
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn = (a, b) ->', 'alt', True, False) # coffee
+    >>> create_log_statement('fn = (a, b) ->', 'somefile.js', 123, True, False) # coffee
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn: (a, b) ->', 'alt', True, False) # coffee
+    >>> create_log_statement('fn: (a, b) ->', 'somefile.js', 123, True, False) # coffee
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn: ->', 'alt', True, False) # coffee
+    >>> create_log_statement('fn: ->', 'somefile.js', 123, True, False) # coffee
     "console.log('fn')"
 
-    >>> create_log_statement('fn: =>', 'alt', True, False) # coffee
+    >>> create_log_statement('fn: =>', 'somefile.js', 123, True, False) # coffee
     "console.log('fn')"
 
-    >>> create_log_statement('fn(a, b): any {', 'alt', True, True)
+    >>> create_log_statement('fn(a, b): any {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn = (a, b) => {', 'alt', True, True)
+    >>> create_log_statement('fn = (a, b) => {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('function fn({a = 5, b = 10} = {}) {', 'alt', True, True)
+    >>> create_log_statement('function fn({a = 5, b = 10} = {}) {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('function fn ({a = 5, b = 10} = {}) ->', 'alt', True, False) # coffee
+    >>> create_log_statement('function fn ({a = 5, b = 10} = {}) ->', 'somefile.js', 123, True, False) # coffee
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn(a: Number, b: Number = 25) {', 'alt', True, True)
+    >>> create_log_statement('fn(a: Number, b: Number = 25) {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn({a: value1, b: value2} = {}) {', 'alt', True, True)
+    >>> create_log_statement('fn({a: value1, b: value2} = {}) {', 'somefile.js', 123, True, True)
     "console.log('fn', 'value1:', value1, 'value2:', value2)"
 
-    >>> create_log_statement('fn({a, b = 25}:SomeType = {}) {', 'alt', True, True)
+    >>> create_log_statement('fn({a, b = 25}:SomeType = {}) {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('export function fn(a, b) {', 'alt', True, True)
+    >>> create_log_statement('export function fn(a, b) {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('export default function fn(a, b) {', 'alt', True, True)
+    >>> create_log_statement('export default function fn(a, b) {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a, 'b:', b)"
 
 
@@ -471,37 +471,37 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
     Callbacks
     (take params, split apart) (strategy params)
 
-    >>> create_log_statement('fn(a, b).then(function(a) {', 'alt', True, True)
-    "console.log('alt', 'a:', a)"
+    >>> create_log_statement('fn(a, b).then(function(a) {', 'somefile.js', 123, True, True)
+    "console.log('somefile.js:123', 'a:', a)"
 
-    >>> create_log_statement('fn(a, b).then((a) => {', 'alt', True, True)
+    >>> create_log_statement('fn(a, b).then((a) => {', 'somefile.js', 123, True, True)
     "console.log('then', 'a:', a)"
 
-    >>> create_log_statement('fn(a, b).then(a => { 1 })', 'alt', True, True)
+    >>> create_log_statement('fn(a, b).then(a => { 1 })', 'somefile.js', 123, True, True)
     "console.log('then')"
 
-    >>> create_log_statement('success: function(a) {', 'alt', True, True)
+    >>> create_log_statement('success: function(a) {', 'somefile.js', 123, True, True)
     "console.log('success', 'a:', a)"
 
-    >>> create_log_statement('success: (a, b) ->', 'alt', True, False) # coffee
+    >>> create_log_statement('success: (a, b) ->', 'somefile.js', 123, True, False) # coffee
     "console.log('success', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('success: (a, b) => {', 'alt', True, False) # coffee
+    >>> create_log_statement('success: (a, b) => {', 'somefile.js', 123, True, False) # coffee
     "console.log('success', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('fn(a => {', 'alt', True, True)
+    >>> create_log_statement('fn(a => {', 'somefile.js', 123, True, True)
     "console.log('fn', 'a:', a)"
 
-    >>> create_log_statement('fn (a) ->', 'alt', True, False) # coffee
+    >>> create_log_statement('fn (a) ->', 'somefile.js', 123, True, False) # coffee
     "console.log('fn', 'a:', a)"
 
-    >>> create_log_statement('fn ({a}) ->', 'alt', True, False) # coffee
+    >>> create_log_statement('fn ({a}) ->', 'somefile.js', 123, True, False) # coffee
     "console.log('fn', 'a:', a)"
 
-    >>> create_log_statement('success: ({a = 5, b = 10}) => {', 'alt', True, True)
+    >>> create_log_statement('success: ({a = 5, b = 10}) => {', 'somefile.js', 123, True, True)
     "console.log('success', 'a:', a, 'b:', b)"
 
-    >>> create_log_statement('$ctrl.onUpdate({ $event: { dates: event.dates } });', 'alt', True, True)
+    >>> create_log_statement('$ctrl.onUpdate({ $event: { dates: event.dates } });', 'somefile.js', 123, True, True)
     "console.log('$ctrl.onUpdate', 'event.dates:', event.dates)"
     """
 
@@ -724,12 +724,16 @@ def create_log_statement(input, alt_identifier, take_inner, flowtype_enabled):
         params[0]['display_key'] = False
 
     args = []
+    cleansed_identifier = utils.shorten(clean_identifier(strat.get('identifier_str') or '')).replace("'", "\\'")
+    if utils.get_setting('always_log_filename', False): args.append("'%s:%d'" % (utils.shorten(filename), lineno))
+
     if strat == strat_value and strat.get('identifier_str') != strat.get('param_str'):
-        identifier = utils.shorten(clean_identifier(strat.get('identifier_str'))).replace("'", "\\'")
-        args.append("'%s:', %s" % (identifier, strat['identifier_str']))
-    else:
-        identifier = utils.shorten(clean_identifier(strat.get('identifier_str') or alt_identifier)).replace("'", "\\'")
-        args.append("'%s'" % identifier)
+        args.append("'%s:', %s" % (cleansed_identifier, strat['identifier_str']))
+    elif cleansed_identifier:
+        args.append("'%s'" % cleansed_identifier)
+    elif not utils.get_setting('always_log_filename'):
+        args.append("'%s:%d'" % (filename, lineno))
+
     args.extend([
         (p['type'] == 'string' or not p['display_key']) \
             and p['name']

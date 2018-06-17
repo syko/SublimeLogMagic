@@ -58,6 +58,14 @@ def get_current_lines(view):
         line = view.substr(line_region)
         yield (line_region, line)
 
+def get_setting(name, default = None):
+    try:
+        import sublime
+        settings = sublime.load_settings('LogMagic.sublime-settings')
+    except:
+        return default
+    return settings.get(name, default)
+
 def find_strings(input):
     """
     Find string literals in string
