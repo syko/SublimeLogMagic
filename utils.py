@@ -352,8 +352,9 @@ def is_wrapped(input, paren_types = '([{'):
 def is_log_statement(line):
     return line.strip().startswith('console.')
 
-def shorten(input, max_length = 21):
+def shorten(input):
     "Shortens long strings by putting '...' in the middle"
+    max_length = get_setting('max_identifier_length', 21)
     if len(input) <= max_length: return input
     return input[ : max_length - 6] + '...' + input[-3:]
 
