@@ -1,5 +1,6 @@
 {
   "always_log_filename": false,
   "default_log_level": "log",
-  "max_identifier_length": 21
+  "max_identifier_length": 21,
+  "print_trailing_semicolon": false
 }

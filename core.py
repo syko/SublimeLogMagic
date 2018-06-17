@@ -741,7 +741,7 @@ def create_log_statement(input, filename, lineno, take_inner, flowtype_enabled):
         for p in params
     ])
 
-    return "console.%s(%s)" % (utils.get_setting('default_log_level', 'log'), ', '.join(args))
+    return "console.%s(%s)%s" % (utils.get_setting('default_log_level', 'log'), ', '.join(args), utils.get_setting('print_trailing_semicolon') and ';' or '')
 
 def cycle_log_types(view, edit, line_region, line, direction):
     """
