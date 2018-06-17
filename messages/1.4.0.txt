@@ -1,0 +1,14 @@
+# LogMagic update 1.4.0
+
+🛠 Added new configuration options!
+
+- `always_log_filename` - if `true`, always prepends `filename:lineno` to the log messages
+- `default_log_level` - specify the method name used for logging. Can be `log`, `info`, `warn`, `error` or even a custom method name
+- `max_identifier_length` - specify how long the identifier names can be before they start to be shortened. Also applies to the `filename` of the buffer (if outputted)
+- `print_trailing_semicolons` - if `true` adds a `;` at the end of the log statement
+
+💡 Did you know?
+
+- There is also a command for removing all `console.*` lines from the current buffer. By default `super+alt+l` (`ctrl+alt+l`)
+
+If you find any bugs, please report them to https://github.com/syko/SublimeLogMagic/issues :)
