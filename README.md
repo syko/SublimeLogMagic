@@ -86,7 +86,23 @@ but 90% of the time it should work all the time.
 
 ## Customizing
 
-There are no customizable settings (feel free to make an issue).
+**Default configuration:**
+
+```json
+{
+  "always_log_filename": false,
+  "default_log_level": "log",
+  "max_identifier_length": 21,
+  "print_trailing_semicolon": false
+}
+```
+
+**Configuration options:**
+
+- `always_log_filename` - if `true`, always preperns `filename:lineno` to the log messages
+- `default_log_level` - specify the method name used to logging. Can be `log`, `info`, `warn`, `error` or even a custom method name
+- `max_identifier_length` - specify how long the identifier names can be before they start to be shortened. Also applies to the `filename` of the buffer (if outputted)
+- `print_trailing_semicolons` - if `true` adds a `;` at the end of the log statement
 
 You can override the custom keyboard shortcuts by adding this to your personal keyboard shortcuts file:
 
