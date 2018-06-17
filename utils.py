@@ -350,7 +350,7 @@ def is_wrapped(input, paren_types = '([{'):
     return False
 
 def is_log_statement(line):
-    return True in [line.strip().startswith('console.' + i) for i in LOG_TYPES]
+    return line.strip().startswith('console.')
 
 def shorten(input, max_length = 21):
     "Shortens long strings by putting '...' in the middle"

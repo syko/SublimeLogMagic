@@ -741,7 +741,7 @@ def create_log_statement(input, filename, lineno, take_inner, flowtype_enabled):
         for p in params
     ])
 
-    return "console.log(%s)" % (', '.join(args))
+    return "console.%s(%s)" % (utils.get_setting('default_log_level', 'log'), ', '.join(args))
 
 def cycle_log_types(view, edit, line_region, line, direction):
     """
@@ -754,10 +754,11 @@ def cycle_log_types(view, edit, line_region, line, direction):
     if not matches: return
 
     current_type = matches.group(1)
-    if current_type not in utils.LOG_TYPES: return
-
-    inc = direction == 'down' and 1 or -1
-    next_type = utils.LOG_TYPES[(utils.LOG_TYPES.index(current_type) + inc) % len(utils.LOG_TYPES)]
+    if current_type in utils.LOG_TYPES:
+        inc = direction == 'down' and 1 or -1
+        next_type = utils.LOG_TYPES[(utils.LOG_TYPES.index(current_type) + inc) % len(utils.LOG_TYPES)]
+    else:
+        next_type = 'log' # Some non-standard default log command, switch to normal cycle
     new_line = line.replace('console.' + current_type, 'console.' + next_type)
 
     view.replace(edit, line_region, new_line)
